@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="PlataformaSoat.Api/PlataformaSoat.Api.csproj" />
+  <Project Path="PlataformaSoat.Application/PlataformaSoat.Application.csproj" />
+  <Project Path="PlataformaSoat.Domain/PlataformaSoat.Domain.csproj" />
+  <Project Path="PlataformaSoat.Infrastructure/PlataformaSoat.Infrastructure.csproj" />
+</Solution>

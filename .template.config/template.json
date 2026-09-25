@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "UNIVida",
+  "classifications": [ "Web", "WebAPI", "CleanArchitecture" ],
+  "name": "UNIVida Clean Architecture Web API Template",
+  "identity": "UNIVida.CleanArchitecture.WebAPI.Template",
+  "shortName": "univida-api",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "PlataformaSoat",
+  "preferNameDirectory": true,
+  "sources": [
+    {
+      "exclude": [
+        "**/bin/**",
+        "**/obj/**",
+        "**/.vs/**",
+        "**/.git/**",
+        "**/*.user",
+        "**/CResultadoExtensions.cs.bak"
+      ]
+    }
+  ]
+}
