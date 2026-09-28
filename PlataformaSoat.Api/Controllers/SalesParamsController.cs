@@ -1,3 +1,4 @@
+using System.Data;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -89,7 +90,7 @@ public class SalesParamsController : BaseApiController
     {
         _logger.LogInformation("Endpoint GET api/sales-params/calculate-premium invocado para Gestión: {PolicyYearId}, Uso: {UsageId}, TipoVehículo: {VehicleTypeId}, Depto: {DepartmentId}",
             request.TbPolicyYearId, request.TbUsageId, request.TbVehicleTypeId, request.TbDepartmentId);
-
+        
         var result = await _salesParamsService.CalculatePremiumAsync(request, cancellationToken);
         return Ok(result);
     }
