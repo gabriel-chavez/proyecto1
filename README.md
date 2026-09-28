@@ -54,14 +54,14 @@ Toda la configuración técnica del servicio WCF y del sistema se especifica en 
 
 ---
 
-## 3. Ejemplo Implementado: Módulo de Cobranza (`RevertirCobro`)
+## 3. Módulos Implementados en Plataforma SOAT
 
-Se incluye una implementación completa del caso de uso de **Reversión de Cobro**, que llama al SP `EXTERNOS_V2.P_F_EX_COB_22_COBRO_REVERTIR`:
+La solución cuenta con los siguientes módulos de negocio basados en Stored Procedures de PostgreSQL:
 
-- **Controlador**: `CobranzaController.cs` expone el endpoint `POST api/Cobranza/cobros/reversion`.
-- **Servicio**: `CobranzaService.cs` valida las reglas del caso de uso y orquesta el llamado.
-- **Repositorio**: `CobranzaRepository.cs` estructura los parámetros de tipo String, Int, etc., en la secuencia y orden esperados.
-- **Cliente WCF**: `ServiciosWebGenericasManagerClient.cs` invoca la operación `EjecutarSPJsonDocumentAsync` en el servicio SOAP externo enviando el payload serializado con las firmas de esquema correctas.
+- **Autenticación (`Auth`)**: Control de accesos con tokens JWT Bearer, rotación de Refresh Tokens y revocación (`/api/auth`).
+- **Parámetros SOAT (`SalesParams`)**: Consulta de parámetros generales, departamentos, tipos de vehículo, usos y tipos de placa (`/api/sales-params`).
+- **Ventas SOAT (`Sales`)**: Emisión masiva de pólizas, solicitud y confirmación de anulaciones, y reporte de ventas (`/api/sales`).
+- **Conciliación SOAT (`SalesRecon`)**: Conciliación de ventas por broker, anulación de conciliaciones y consulta de pólizas no conciliadas (`/api/sales-recon`).
 
 ---
 

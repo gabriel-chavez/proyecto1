@@ -14,13 +14,13 @@ public static class SwaggerExtensions
         {
             c.SwaggerDoc("v1", new OpenApiInfo
             {
-                Title = "Mi API",
+                Title = "Plataforma SOAT API",
                 Version = "v1",
-                Description = "API REST Genérica para múltiples sistemas",
+                Description = "API REST de la Plataforma SOAT con autenticación JWT, emisión y conciliación de pólizas.",
                 Contact = new OpenApiContact
                 {
-                    Name = "Soporte",
-                    Email = "soporte@empresa.com"
+                    Name = "Soporte SOAT",
+                    Email = "soporte@univida.bo"
                 }
             });
 

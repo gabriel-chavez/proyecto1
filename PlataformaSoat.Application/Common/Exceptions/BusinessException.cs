@@ -2,10 +2,10 @@ namespace PlataformaSoat.Application.Common.Exceptions;
 
 public class BusinessException : Exception
 {
-    public int ErrorCode { get; }
+    public string? Code { get; }
 
-    public BusinessException(string message, int errorCode = 400) : base(message)
+    public BusinessException(string message, string? code = null) : base(message)
     {
-        ErrorCode = errorCode;
+        Code = code;
     }
 }

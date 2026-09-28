@@ -3,8 +3,13 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PlataformaSoat.Application.Common.DTOs;
+using PlataformaSoat.Application.Common.DTOs.Logs;
 using PlataformaSoat.Application.Common.Exceptions;
+using PlataformaSoat.Application.Common.Interfaces;
+using PlataformaSoat.Application.Configuration;
+using PlataformaSoat.Domain.Exceptions;
 
 namespace PlataformaSoat.Api.Middleware;
 
@@ -19,7 +24,11 @@ public class ExceptionMiddleware
         _logger = logger;
     }
 
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(
+        HttpContext context,
+        IErrorLogService errorLogService,
+        ICurrentUserService currentUserService,
+        IOptions<ApiSettings> apiSettings)
     {
         try
         {
@@ -27,8 +36,66 @@ public class ExceptionMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error no controlado");
+            _logger.LogError(ex, "Error capturado en middleware de excepciones");
+            await LogErrorToDbAsync(context, ex, errorLogService, currentUserService, apiSettings);
             await HandleExceptionAsync(context, ex);
+        }
+    }
+
+    private static async Task LogErrorToDbAsync(
+        HttpContext context,
+        Exception ex,
+        IErrorLogService errorLogService,
+        ICurrentUserService currentUserService,
+        IOptions<ApiSettings> apiSettings)
+    {
+        try
+        {
+            var (layer, statusCode) = ex switch
+            {
+                ValidationException => ("APPLICATION", StatusCodes.Status400BadRequest),
+                BusinessException => ("APPLICATION", StatusCodes.Status400BadRequest),
+                DomainException => ("DOMAIN", StatusCodes.Status422UnprocessableEntity),
+                _ when ex.GetType().Name.Contains("Npgsql", StringComparison.OrdinalIgnoreCase) => ("DATABASE", StatusCodes.Status500InternalServerError),
+                _ => ("API", StatusCodes.Status500InternalServerError)
+            };
+
+            var systemName = apiSettings?.Value?.NombreSistema ?? "PlataformaSoat";
+            var userName = currentUserService.Username ?? context.User.Identity?.Name ?? "anonymous";
+
+            var originJson = JsonSerializer.Serialize(new
+            {
+                trace_id = context.TraceIdentifier,
+                endpoint = context.Request.Path.Value,
+                method = context.Request.Method
+            });
+
+            var contextJson = JsonSerializer.Serialize(new
+            {
+                query = context.Request.QueryString.Value,
+                client_ip = currentUserService.IPAddress ?? context.Connection.RemoteIpAddress?.ToString()
+            });
+
+            await errorLogService.AddErrorLogAsync(new AddErrorLogRequest
+            {
+                Layer = layer,
+                System = systemName,
+                UserName = userName,
+                Severity = statusCode >= 500 ? "ERROR" : "WARNING",
+                ErrorCode = statusCode.ToString(),
+                ErrorType = ex.GetType().Name,
+                Message = ex.Message,
+                ExceptionMessage = ex.Message,
+                ExceptionSource = ex.Source,
+                ExceptionStackTrace = ex.StackTrace,
+                ExceptionInner = ex.InnerException?.Message,
+                Origin = originJson,
+                Context = contextJson
+            });
+        }
+        catch
+        {
+            // Seguridad: la auditoría de error nunca debe impedir enviar la respuesta de fallo al cliente
         }
     }
 
@@ -36,41 +103,23 @@ public class ExceptionMiddleware
     {
         context.Response.ContentType = "application/json";
 
-        var response = exception switch
+        var (statusCode, message) = exception switch
         {
-            BusinessException businessEx => new ApiResponse<object>
-            {
-                Exito = false,
-                CodigoRetorno = businessEx.ErrorCode,
-                Mensaje = businessEx.Message,
-                Resultado = null
-            },
-            ValidationException validationEx => new ApiResponse<object>
-            {
-                Exito = false,
-                CodigoRetorno = 400,
-                Mensaje = validationEx.Message,
-                Resultado = null
-            },
-            _ => new ApiResponse<object>
-            {
-                Exito = false,
-                CodigoRetorno = 500,
-                Mensaje = "Ocurrió un error interno en el servidor",
-                Resultado = null
-            }
+            ValidationException validationEx => (StatusCodes.Status400BadRequest, validationEx.Message),
+            BusinessException businessEx => (StatusCodes.Status400BadRequest, businessEx.Message),
+            DomainException domainEx => (StatusCodes.Status422UnprocessableEntity, domainEx.Message),
+            _ => (StatusCodes.Status500InternalServerError, "Ocurrió un error interno en el servidor")
         };
 
-        // Incluir Correlation ID en respuestas
+        var response = ApiResponse<object>.Failure(
+            errorMessage: message,
+            responseMessage: statusCode >= 500 ? "Ocurrió un error interno en el servidor" : message,
+            statusMessage: "ERROR");
         response.CorrelationId = context.TraceIdentifier;
 
-        context.Response.StatusCode = response.CodigoRetorno >= 400 && response.CodigoRetorno < 500 
-            ? response.CodigoRetorno 
-            : 500;
+        context.Response.StatusCode = statusCode;
 
-        var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-        var json = JsonSerializer.Serialize(response, options);
-
+        var json = JsonSerializer.Serialize(response);
         return context.Response.WriteAsync(json);
     }
 }

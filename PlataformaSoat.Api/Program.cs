@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -11,6 +12,8 @@ using PlataformaSoat.Application;
 using PlataformaSoat.Infrastructure.Configuration;
 using PlataformaSoat.Application.Configuration;
 using PlataformaSoat.Infrastructure;
+using PlataformaSoat.Application.Common.Interfaces;
+using PlataformaSoat.Application.Common.DTOs.Logs;
 
 using FluentValidation.AspNetCore;
 
@@ -24,11 +27,63 @@ builder.Services.Configure<PostgresSettings>(builder.Configuration.GetSection("P
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<ValidationFilter>();
+})
+.AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new PlataformaSoat.Application.Common.Converters.SafeJsonElementConverter());
+});
+
+// Configuración de respuesta uniforme para errores de validación de modelo (FluentValidation / ASP.NET Core)
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(x => x.Value?.Errors.Count > 0)
+            .ToDictionary(
+                kvp => System.Text.Json.JsonNamingPolicy.SnakeCaseLower.ConvertName(kvp.Key.TrimStart('$', '.')),
+                kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+            );
+
+        var errorMessages = errors.Values.SelectMany(x => x).ToList();
+        var combinedError = string.Join("; ", errorMessages);
+
+        var response = new PlataformaSoat.Application.Common.DTOs.BaseResponse<Dictionary<string, string[]>>
+        {
+            Response = errors,
+            Success = false,
+            StatusMessage = "VALIDATION_ERROR",
+            ResponseMessage = "Uno o más errores de validación ocurrieron.",
+            ErrorMessage = combinedError
+        };
+
+        // Registrar error en la capa API
+        var errorLogService = context.HttpContext.RequestServices.GetService<IErrorLogService>();
+        if (errorLogService != null)
+        {
+            _ = errorLogService.AddErrorLogAsync(new AddErrorLogRequest
+            {
+                Layer = "API",
+                Severity = "WARNING",
+                ErrorCode = "VALIDATION_ERROR",
+                ErrorType = "ModelStateValidationError",
+                Message = combinedError,
+                Origin = System.Text.Json.JsonSerializer.Serialize(new { endpoint = context.HttpContext.Request.Path.Value }),
+                Context = System.Text.Json.JsonSerializer.Serialize(new { trace_id = context.HttpContext.TraceIdentifier, errors = errors })
+            });
+        }
+
+        return new BadRequestObjectResult(response);
+    };
 });
 
 builder.Services.AddFluentValidationAutoValidation();
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<PlataformaSoat.Application.Common.Interfaces.ICurrentUserService, PlataformaSoat.Api.Services.CurrentUserService>();
+
+// JWT Authentication
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // Application
 builder.Services.AddApplication();
@@ -58,8 +113,9 @@ builder.Logging.AddDebug();
 
 var app = builder.Build();
 
-// Middleware
+// Middleware Pipeline
 app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<ApiLoggingMiddleware>();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 
@@ -85,6 +141,7 @@ app.UseCors("AllowAll");
 
 // HTTP Pipeline
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
