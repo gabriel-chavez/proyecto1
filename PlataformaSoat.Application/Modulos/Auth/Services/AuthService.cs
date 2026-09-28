@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using PlataformaSoat.Application.Common.DTOs;
 using PlataformaSoat.Application.Common.Interfaces;
 using PlataformaSoat.Application.Modulos.Auth.DTOs;
+using PlataformaSoat.Application.Modulos.Auth.Interfaces;
 
 namespace PlataformaSoat.Application.Modulos.Auth.Services;
 
@@ -15,68 +16,46 @@ public class AuthService
 {
     private readonly ITokenService _tokenService;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IUserRepository _userRepository;
     private readonly ILogger<AuthService> _logger;
-
-    // Catálogo inicial de usuarios del sistema (fácilmente extensible a BD / Stored Procedures)
-    private static readonly Dictionary<string, (string PasswordHash, UserInfoDto UserInfo)> DefaultUsers =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["admin"] = ("admin123", new UserInfoDto
-            {
-                UserId = "1",
-                Username = "admin",
-                Email = "admin@univida.bo",
-                Roles = new List<string> { "Admin", "Operador" }
-            }),
-            ["operador"] = ("operador123", new UserInfoDto
-            {
-                UserId = "2",
-                Username = "operador",
-                Email = "operador@univida.bo",
-                Roles = new List<string> { "Operador" }
-            }),
-            ["user"] = ("user123", new UserInfoDto
-            {
-                UserId = "3",
-                Username = "user",
-                Email = "user@univida.bo",
-                Roles = new List<string> { "User" }
-            })
-        };
 
     public AuthService(
         ITokenService tokenService,
         ICurrentUserService currentUserService,
+        IUserRepository userRepository,
         ILogger<AuthService> logger)
     {
         _tokenService = tokenService;
         _currentUserService = currentUserService;
+        _userRepository = userRepository;
         _logger = logger;
     }
 
     /// <summary>
-    /// Inicia sesión validando credenciales y generando Access Token (JWT) y Refresh Token.
+    /// Inicia sesión validando credenciales en la base de datos y generando Access Token (JWT) y Refresh Token.
     /// </summary>
-    public Task<BaseResponse<LoginResponse>> LoginAsync(LoginRequest request)
+    public async Task<BaseResponse<LoginResponse>> LoginAsync(LoginRequest request)
     {
         _logger.LogInformation("Intento de inicio de sesión para el usuario {Username}", request.Username);
 
-        if (!DefaultUsers.TryGetValue(request.Username, out var record) || record.PasswordHash != request.Password)
+        var userRecord = await _userRepository.GetByUsernameAsync(request.Username);
+
+        if (userRecord == null || userRecord.Value.PasswordHash != request.Password)
         {
-            _logger.LogWarning("Autenticación fallida para el usuario {Username}: credenciales incorrectas", request.Username);
-            return Task.FromResult(BaseResponse<LoginResponse>.Fail(
+            _logger.LogWarning("Autenticación fallida para el usuario {Username}: credenciales incorrectas o usuario inactivo", request.Username);
+            return BaseResponse<LoginResponse>.Fail(
                 errorMessage: "Credenciales inválidas. Verifique su usuario y contraseña.",
                 responseMessage: "Error de autenticación",
-                statusMessage: "INVALID_CREDENTIALS"));
+                statusMessage: "INVALID_CREDENTIALS");
         }
 
-        var tokenResponse = _tokenService.GenerateTokens(record.UserInfo);
+        var tokenResponse = _tokenService.GenerateTokens(userRecord.Value.UserInfo);
         _logger.LogInformation("Inicio de sesión exitoso para {Username}. Token generado.", request.Username);
 
-        return Task.FromResult(BaseResponse<LoginResponse>.Ok(
+        return BaseResponse<LoginResponse>.Ok(
             response: tokenResponse,
             responseMessage: "Sesión iniciada correctamente",
-            statusMessage: "SUCCESS"));
+            statusMessage: "SUCCESS");
     }
 
     /// <summary>

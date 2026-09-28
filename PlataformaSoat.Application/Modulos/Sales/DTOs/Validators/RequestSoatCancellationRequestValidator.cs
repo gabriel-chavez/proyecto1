@@ -7,9 +7,6 @@ public class RequestSoatCancellationRequestValidator : AbstractValidator<Request
 {
     public RequestSoatCancellationRequestValidator()
     {
-        RuleFor(x => x.RegisteredBy)
-            .NotEmpty().WithMessage("El campo 'registered_by' es obligatorio.");
-
         RuleFor(x => x.TbSoatPolicyId)
             .GreaterThan(0).WithMessage("El identificador de póliza 'tb_soat_policy_id' debe ser mayor a 0.");
 

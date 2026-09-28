@@ -16,12 +16,8 @@ public static class SwaggerExtensions
             {
                 Title = "Plataforma SOAT API",
                 Version = "v1",
-                Description = "API REST de la Plataforma SOAT con autenticación JWT, emisión y conciliación de pólizas.",
-                Contact = new OpenApiContact
-                {
-                    Name = "Soporte SOAT",
-                    Email = "soporte@univida.bo"
-                }
+                Description = "API REST de la Plataforma SOAT con autenticación JWT, emisión y conciliación de pólizas."
+                
             });
 
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

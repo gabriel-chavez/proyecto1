@@ -7,9 +7,6 @@ public class CancelReconciliationRequestValidator : AbstractValidator<CancelReco
 {
     public CancelReconciliationRequestValidator()
     {
-        RuleFor(x => x.RegisteredBy)
-            .NotEmpty().WithMessage("El campo 'registered_by' es obligatorio.");
-
         RuleFor(x => x.TbReconciliationId)
             .GreaterThan(0).WithMessage("El identificador de conciliación 'tb_reconciliation_id' debe ser mayor a 0.");
 

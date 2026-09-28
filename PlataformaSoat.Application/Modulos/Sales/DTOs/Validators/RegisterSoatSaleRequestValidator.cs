@@ -7,9 +7,6 @@ public class RegisterSoatSaleRequestValidator : AbstractValidator<RegisterSoatSa
 {
     public RegisterSoatSaleRequestValidator()
     {
-        RuleFor(x => x.RegisteredBy)
-            .NotEmpty().WithMessage("El campo 'registered_by' es obligatorio.");
-
         RuleFor(x => x.TbBranchId)
             .GreaterThan(0).WithMessage("El campo 'tb_branch_id' debe ser mayor a 0.");
 

@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using PlataformaSoat.Application.Common.DTOs;
+using PlataformaSoat.Application.Modulos.SalesParams.DTOs.Requests;
 using PlataformaSoat.Application.Modulos.SalesParams.DTOs.Responses;
 
 namespace PlataformaSoat.Application.Modulos.SalesParams.Interfaces;
@@ -25,4 +26,14 @@ public interface ISalesParamsRepository
     /// Invoca sales_params.psp_03_list_sales_channels
     /// </summary>
     Task<BaseResponse<JsonElement>> ListSalesChannelsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Invoca sales_params.psp_04_calculate_premium
+    /// </summary>
+    Task<BaseResponse<JsonElement>> CalculatePremiumAsync(CalculatePremiumRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sobrecarga para invocar sales_params.psp_04_calculate_premium con parámetros individuales
+    /// </summary>
+    Task<BaseResponse<JsonElement>> CalculatePremiumAsync(int policyYearId, int usageId, int vehicleTypeId, int departmentId, CancellationToken cancellationToken = default);
 }

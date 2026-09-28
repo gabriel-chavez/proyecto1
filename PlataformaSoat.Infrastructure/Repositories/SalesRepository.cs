@@ -34,9 +34,11 @@ public class SalesRepository : BaseRepository, ISalesRepository
         _logger.LogInformation("Ejecutando procedimiento sales.psp_01_register_soat_sale para {PlateOrChassis} - Factura: {InvoiceNumber}",
             request.PlateOrChassis, request.InvoiceNumber);
 
+        var registeredBy = ResolveRegisteredBy(request.RegisteredBy);
+
         var input = new InParam[]
         {
-            new("i_registered_by", request.RegisteredBy, NpgsqlDbType.Varchar),
+            new("i_registered_by", registeredBy, NpgsqlDbType.Varchar),
             new("i_tb_branch_id", request.TbBranchId, NpgsqlDbType.Integer),
             new("i_tb_broker_id", request.TbBrokerId, NpgsqlDbType.Integer),
             new("i_tb_commercializer_id", request.TbCommercializerId, NpgsqlDbType.Integer),
@@ -75,9 +77,11 @@ public class SalesRepository : BaseRepository, ISalesRepository
             ? "[]"
             : request.Soats.GetRawText();
 
+        var registeredBy = ResolveRegisteredBy(request.RegisteredBy);
+
         var input = new InParam[]
         {
-            new("i_registered_by", request.RegisteredBy, NpgsqlDbType.Varchar),
+            new("i_registered_by", registeredBy, NpgsqlDbType.Varchar),
             new("i_tb_branch_id", request.TbBranchId, NpgsqlDbType.Integer),
             new("i_tb_broker_id", request.TbBrokerId, NpgsqlDbType.Integer),
             new("i_tb_commercializer_id", request.TbCommercializerId, NpgsqlDbType.Integer),
@@ -103,9 +107,11 @@ public class SalesRepository : BaseRepository, ISalesRepository
         _logger.LogInformation("Ejecutando procedimiento sales.psp_02_request_soat_cancellation para póliza {PolicyId}",
             request.TbSoatPolicyId);
 
+        var registeredBy = ResolveRegisteredBy(request.RegisteredBy);
+
         var input = new InParam[]
         {
-            new("i_registered_by", request.RegisteredBy, NpgsqlDbType.Varchar),
+            new("i_registered_by", registeredBy, NpgsqlDbType.Varchar),
             new("i_tb_soat_policy_id", request.TbSoatPolicyId, NpgsqlDbType.Bigint),
             new("i_cancellation_reason", request.CancellationReason, NpgsqlDbType.Text),
             new("i_requested_by", request.RequestedBy, NpgsqlDbType.Varchar)

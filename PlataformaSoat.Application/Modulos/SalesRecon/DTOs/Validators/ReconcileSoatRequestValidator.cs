@@ -7,9 +7,6 @@ public class ReconcileSoatRequestValidator : AbstractValidator<ReconcileSoatRequ
 {
     public ReconcileSoatRequestValidator()
     {
-        RuleFor(x => x.RegisteredBy)
-            .NotEmpty().WithMessage("El campo 'registered_by' es obligatorio.");
-
         RuleFor(x => x.TbReconciliationTypeId)
             .GreaterThan(0).WithMessage("El identificador de tipo de conciliación 'tb_reconciliation_type_id' debe ser mayor a 0.");
 

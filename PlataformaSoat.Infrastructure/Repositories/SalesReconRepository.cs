@@ -57,9 +57,11 @@ public class SalesReconRepository : BaseRepository, ISalesReconRepository
         _logger.LogInformation("Ejecutando procedimiento sales_recon.psp_02_reconcile_soat para Broker {BrokerId}",
             request.TbBrokerId);
 
+        var registeredBy = ResolveRegisteredBy(request.RegisteredBy);
+
         var input = new InParam[]
         {
-            new("i_registered_by", request.RegisteredBy, NpgsqlDbType.Varchar),
+            new("i_registered_by", registeredBy, NpgsqlDbType.Varchar),
             new("i_tb_reconciliation_type_id", request.TbReconciliationTypeId, NpgsqlDbType.Integer),
             new("i_tb_broker_id", request.TbBrokerId, NpgsqlDbType.Integer),
             new("i_start_date", request.StartDate, NpgsqlDbType.Date),
@@ -86,11 +88,14 @@ public class SalesReconRepository : BaseRepository, ISalesReconRepository
         _logger.LogInformation("Ejecutando procedimiento sales_recon.psp_03_cancel_reconciliation para conciliación {ReconciliationId}",
             request.TbReconciliationId);
 
+        var registeredBy = ResolveRegisteredBy(request.RegisteredBy);
+        var cancelledBy = ResolveRegisteredBy(request.CancelledBy);
+
         var input = new InParam[]
         {
-            new("i_registered_by", request.RegisteredBy, NpgsqlDbType.Varchar),
+            new("i_registered_by", registeredBy, NpgsqlDbType.Varchar),
             new("i_tb_reconciliation_id", request.TbReconciliationId, NpgsqlDbType.Bigint),
-            new("i_cancelled_by", request.CancelledBy, NpgsqlDbType.Varchar),
+            new("i_cancelled_by", cancelledBy, NpgsqlDbType.Varchar),
             new("i_cancellation_reason", request.CancellationReason, NpgsqlDbType.Text)
         };
 

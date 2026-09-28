@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PlataformaSoat.Application.Common.Interfaces;
+using PlataformaSoat.Application.Modulos.Auth.Interfaces;
 using PlataformaSoat.Application.Modulos.Sales.Interfaces;
 using PlataformaSoat.Application.Modulos.SalesParams.Interfaces;
 using PlataformaSoat.Application.Modulos.SalesRecon.Interfaces;
@@ -26,6 +27,7 @@ public static class DependencyInjection
 
         // Repositorios EF Core (para entidades y operaciones CRUD/Unit of Work)
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddScoped<IUserRepository, UserRepository>();
 
         // Repositorios de Procedimientos Almacenados (PostgreSQL SPs / DTOs)
         services.AddScoped<ISalesParamsRepository, SalesParamsRepository>();
