@@ -7,9 +7,6 @@ namespace PlataformaSoat.Application.Modulos.Sales.DTOs.Requests;
 /// </summary>
 public class RequestSoatCancellationRequest
 {
-    [JsonPropertyName("registered_by")]
-    public string RegisteredBy { get; set; } = string.Empty;
-
     [JsonPropertyName("tb_soat_policy_id")]
     public long TbSoatPolicyId { get; set; }
 

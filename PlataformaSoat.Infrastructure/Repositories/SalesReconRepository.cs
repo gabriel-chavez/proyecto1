@@ -57,7 +57,7 @@ public class SalesReconRepository : BaseRepository, ISalesReconRepository
         _logger.LogInformation("Ejecutando procedimiento sales_recon.psp_02_reconcile_soat para Broker {BrokerId}",
             request.TbBrokerId);
 
-        var registeredBy = ResolveRegisteredBy(request.RegisteredBy);
+        var registeredBy = ResolveRegisteredBy();
 
         var input = new InParam[]
         {
@@ -88,7 +88,7 @@ public class SalesReconRepository : BaseRepository, ISalesReconRepository
         _logger.LogInformation("Ejecutando procedimiento sales_recon.psp_03_cancel_reconciliation para conciliación {ReconciliationId}",
             request.TbReconciliationId);
 
-        var registeredBy = ResolveRegisteredBy(request.RegisteredBy);
+        var registeredBy = ResolveRegisteredBy();
         var cancelledBy = ResolveRegisteredBy(request.CancelledBy);
 
         var input = new InParam[]

@@ -8,9 +8,6 @@ namespace PlataformaSoat.Application.Modulos.SalesRecon.DTOs.Requests;
 /// </summary>
 public class ReconcileSoatRequest
 {
-    [JsonPropertyName("registered_by")]
-    public string RegisteredBy { get; set; } = string.Empty;
-
     [JsonPropertyName("tb_reconciliation_type_id")]
     public int TbReconciliationTypeId { get; set; }
 

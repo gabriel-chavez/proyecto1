@@ -46,8 +46,8 @@ public class SalesReconService
         ReconcileSoatRequest request,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Iniciando conciliación SOAT para Broker {BrokerId} por {RegisteredBy} en {Institution}",
-            request.TbBrokerId, request.RegisteredBy, request.FinancialInstitution);
+        _logger.LogInformation("Iniciando conciliación SOAT para Broker {BrokerId} en {Institution}",
+            request.TbBrokerId, request.FinancialInstitution);
 
         return await _repository.ReconcileSoatAsync(request, cancellationToken);
     }

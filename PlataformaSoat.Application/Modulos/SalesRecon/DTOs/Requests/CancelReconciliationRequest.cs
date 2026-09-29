@@ -7,9 +7,6 @@ namespace PlataformaSoat.Application.Modulos.SalesRecon.DTOs.Requests;
 /// </summary>
 public class CancelReconciliationRequest
 {
-    [JsonPropertyName("registered_by")]
-    public string RegisteredBy { get; set; } = string.Empty;
-
     [JsonPropertyName("tb_reconciliation_id")]
     public long TbReconciliationId { get; set; }
 

@@ -34,7 +34,7 @@ public class SalesRepository : BaseRepository, ISalesRepository
         _logger.LogInformation("Ejecutando procedimiento sales.psp_01_register_soat_sale para {PlateOrChassis} - Factura: {InvoiceNumber}",
             request.PlateOrChassis, request.InvoiceNumber);
 
-        var registeredBy = ResolveRegisteredBy(request.RegisteredBy);
+        var registeredBy = ResolveRegisteredBy();
 
         var input = new InParam[]
         {
@@ -77,7 +77,7 @@ public class SalesRepository : BaseRepository, ISalesRepository
             ? "[]"
             : request.Soats.GetRawText();
 
-        var registeredBy = ResolveRegisteredBy(request.RegisteredBy);
+        var registeredBy = ResolveRegisteredBy();
 
         var input = new InParam[]
         {
@@ -107,7 +107,7 @@ public class SalesRepository : BaseRepository, ISalesRepository
         _logger.LogInformation("Ejecutando procedimiento sales.psp_02_request_soat_cancellation para póliza {PolicyId}",
             request.TbSoatPolicyId);
 
-        var registeredBy = ResolveRegisteredBy(request.RegisteredBy);
+        var registeredBy = ResolveRegisteredBy();
 
         var input = new InParam[]
         {

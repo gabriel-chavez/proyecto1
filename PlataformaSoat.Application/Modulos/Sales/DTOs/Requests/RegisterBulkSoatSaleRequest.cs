@@ -8,9 +8,6 @@ namespace PlataformaSoat.Application.Modulos.Sales.DTOs.Requests;
 /// </summary>
 public class RegisterBulkSoatSaleRequest
 {
-    [JsonPropertyName("registered_by")]
-    public string RegisteredBy { get; set; } = string.Empty;
-
     [JsonPropertyName("tb_branch_id")]
     public int TbBranchId { get; set; }
 
